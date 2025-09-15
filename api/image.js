@@ -1,38 +1,25 @@
+import OpenAI from "openai";
+
+const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
 export default async function handler(req, res) {
   if (req.method !== "POST") {
-    return res.status(405).json({ error: "Método no permitido, usa POST" });
-  }
-
-  const { prompt = "Un plato de comida saludable en estilo realista" } = req.body;
-
-  if (!process.env.OPENAI_API_KEY) {
-    return res.status(500).json({ error: "Falta API key en servidor" });
+    return res.status(405).json({ error: "Method not allowed" });
   }
 
   try {
-    const response = await fetch("https://api.openai.com/v1/images/generations", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
-      },
-      body: JSON.stringify({
-        model: "gpt-image-1",
-        prompt,
-        size: "512x512"   // puedes cambiar a "1024x1024" si quieres más calidad
-      }),
+    const { prompt } = req.body;
+
+    const image = await client.images.generate({
+      model: "gpt-image-1",
+      prompt,
+      size: "auto"   // ✅ corregido
     });
 
-    const data = await response.json();
+    res.status(200).json({ url: image.data[0].url });
 
-    if (data.error) {
-      return res.status(500).json({ error: data.error.message });
-    }
-
-    res.status(200).json({
-      url: data.data?.[0]?.url || null
-    });
   } catch (error) {
-    res.status(500).json({ error: "Error al generar imagen", details: error.message });
+    console.error("Error:", error);
+    res.status(500).json({ error: "Error al generar imagen" });
   }
 }
