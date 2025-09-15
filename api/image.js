@@ -1,9 +1,4 @@
-// api/image.js
 import OpenAI from "openai";
-
-const client = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
@@ -14,23 +9,27 @@ export default async function handler(req, res) {
     const { prompt } = req.body;
 
     if (!prompt) {
-      return res.status(400).json({ error: "Falta el campo 'prompt'" });
+      return res.status(400).json({ error: "Falta el prompt" });
     }
 
-    const response = await client.images.generate({
-      model: "gpt-image-1",
-      prompt,
-      size: "1024x1024", // 👈 tamaño válido
+    const client = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
     });
 
-    const imageUrl = response.data[0].url;
+    const result = await client.images.generate({
+      model: "gpt-image-1",
+      prompt,
+      size: "1024x1024",
+    });
 
-    return res.status(200).json({ url: imageUrl });
+    res.status(200).json({ url: result.data[0].url });
   } catch (error) {
-    console.error("Error generando imagen:", error);
-    return res.status(500).json({
-      error: "Error al generar la imagen",
-      details: error.message,
+    console.error("OpenAI error:", error);
+
+    res.status(500).json({
+      error: "Error al generar imagen",
+      details: error?.response?.data || error.message || error.toString(),
+      env: process.env.OPENAI_API_KEY ? "API Key detectada" : "API Key ausente",
     });
   }
 }
