@@ -1,0 +1,14 @@
+{
+  "name": "cooktiva-backend",
+  "version": "1.0.0",
+  "description": "Backend de Cooktiva con endpoints para recetas, planes y generación de imágenes.",
+  "main": "server.js",
+  "scripts": {
+    "dev": "node server.js",
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "openai": "^4.0.0"
+  }
+}
